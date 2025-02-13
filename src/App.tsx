@@ -1,3 +1,4 @@
+import Sticky2 from './ai'
 import Sticky from './Sticky'
 import './App.css'
 
@@ -14,6 +15,12 @@ function App() {
         <Sticky enabled top={50} bottomBoundary=".aaaaa" className="absolute top-0">
           <div className="bg-red-50 inline-block p-8">1</div>
         </Sticky>
+        <div className="pl-50">
+          <Sticky2 enabled top={50} bottomBoundary=".aaaaa" className="absolute top-0">
+            <div className="bg-red-200 inline-block p-8">1</div>
+          </Sticky2>
+        </div>
+
       </div>
 
     </>
