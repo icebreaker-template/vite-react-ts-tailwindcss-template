@@ -1,8 +1,8 @@
 {
-  "name": "m",
-  "private": true,
-  "version": "0.0.0",
+  "name": "vite-react-ts-tailwindcss-template",
   "type": "module",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -10,8 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "classnames": "^2.5.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-sticky": "^6.0.3",
+    "react-sticky-box": "^2.0.5",
+    "react-sticky-el": "^2.1.1",
+    "react-stickynode": "^5.0.1",
+    "subscribe-ui-event": "^3.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
@@ -19,6 +25,9 @@
     "@tailwindcss/vite": "^4.0.6",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
+    "@types/react-sticky": "^6.0.6",
+    "@types/react-stickynode": "^4.0.3",
+    "@types/subscribe-ui-event": "^1.1.8",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.19.0",
     "tailwindcss": "^4.0.6",
