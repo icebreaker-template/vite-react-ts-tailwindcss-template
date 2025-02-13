@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
-import { subscribe, unsubscribe } from 'subscribe-ui-event'
+import { subscribe } from 'subscribe-ui-event'
 import shallowEqual from './shallowequal'
 
 // constants
@@ -68,19 +68,15 @@ const Sticky: React.FC<StickyProps> = (props) => {
   const innerElement = useRef<HTMLDivElement>(null)
 
   const [scrollTop, setScrollTop] = useState(-1)
-  const [stickyTop, setStickyTop] = useState(0)
-  const [stickyBottom, setStickyBottom] = useState(0)
+  const skipNextScrollEvent = useRef(false)
 
   const frozen = props.shouldFreeze ? props.shouldFreeze() : false
-  const skipNextScrollEvent = useRef(false)
 
   const getTargetHeight = (target: HTMLElement | null) => target?.offsetHeight || 0
 
   const getTopPosition = (top: number | string | undefined) => {
     if (typeof top === 'string') {
-      if (!doc) {
-        doc = document
-      }
+      if (!doc) { doc = document }
       const topTarget = doc.querySelector(top)
       return getTargetHeight(topTarget)
     }
@@ -88,9 +84,7 @@ const Sticky: React.FC<StickyProps> = (props) => {
   }
 
   const getTargetBottom = (target: HTMLElement | null) => {
-    if (!target) {
-      return -1
-    }
+    if (!target) { return -1 }
     const rect = target.getBoundingClientRect()
     return scrollTop + rect.bottom
   }
@@ -141,9 +135,7 @@ const Sticky: React.FC<StickyProps> = (props) => {
   }
 
   const handleScrollStart = (e: Event, ae: any) => {
-    if (frozen) {
-      return
-    }
+    if (frozen) { return }
 
     if (scrollTop === ae.scroll.top) {
       skipNextScrollEvent.current = true
@@ -182,68 +174,42 @@ const Sticky: React.FC<StickyProps> = (props) => {
       reset()
     }
     else if (bottom >= state.bottomBoundary) {
-      setStickyBottom(state.bottomBoundary)
-      setStickyTop(state.bottomBoundary - state.height)
-      release(state.bottomBoundary - state.height)
+      setState(prevState => ({
+        ...prevState,
+        status: STATUS_RELEASED,
+        pos: state.bottomBoundary - state.height - state.y,
+      }))
     }
     else {
       if (state.height > winHeight - state.top) {
-        switch (state.status) {
-          case STATUS_ORIGINAL:
-            release(state.y)
-            setStickyTop(state.y)
-            setStickyBottom(state.y + state.height)
-            break
-          case STATUS_RELEASED:
-            setStickyBottom(state.y + state.height)
-            if (delta > 0 && bottom > state.bottom) {
-              fix(state.bottom - state.height)
-            }
-            else if (delta < 0 && top < state.top) {
-              fix(state.top)
-            }
-            break
-          case STATUS_FIXED:
-            if (delta > 0 && state.pos === state.top) {
-              setStickyTop(top - delta)
-              setStickyBottom(top - delta + state.height)
-            }
-            else if (delta < 0 && state.pos === state.bottom - state.height) {
-              setStickyBottom(bottom - delta)
-              setStickyTop(bottom - delta - state.height)
-            }
-            else {
-              release(state.top)
-            }
-            break
+        if (state.status === STATUS_ORIGINAL) {
+          setState(prevState => ({
+            ...prevState,
+            status: STATUS_RELEASED,
+            pos: state.y,
+          }))
+        }
+
+        if (state.status === STATUS_RELEASED) {
+          setState(prevState => ({
+            ...prevState,
+            status: STATUS_FIXED,
+            pos: top,
+          }))
         }
       }
       else {
-        fix(state.top)
+        setState(prevState => ({
+          ...prevState,
+          status: STATUS_FIXED,
+          pos: state.top,
+        }))
       }
     }
   }
 
   const reset = () => {
     setState({ ...state, status: STATUS_ORIGINAL, pos: 0 })
-  }
-
-  const release = (pos: number) => {
-    setState({ ...state, status: STATUS_RELEASED, pos: pos - state.y })
-  }
-
-  const fix = (pos: number) => {
-    setState({ ...state, status: STATUS_FIXED, pos })
-  }
-
-  const translate = (style: React.CSSProperties, pos: number) => {
-    const enableTransforms = canEnableTransforms && props.enableTransforms
-    if (enableTransforms && state.activated) {
-      style[TRANSFORM_PROP] = `translate3d(0,${Math.round(pos)}px,0)`
-    }
-    else {
-      style.top = `${pos}px`
-    }
   }
 
   useEffect(() => {
@@ -285,8 +251,6 @@ const Sticky: React.FC<StickyProps> = (props) => {
     zIndex: props.innerZ,
   }
   const outerStyle: React.CSSProperties = {}
-
-  translate(innerStyle, state.pos)
 
   if (state.status !== STATUS_ORIGINAL) {
     innerStyle.width = `${state.width}px`
