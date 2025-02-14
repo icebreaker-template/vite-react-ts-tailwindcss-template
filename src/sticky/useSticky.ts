@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { subscribe } from 'subscribe-ui-event'
+import shallowEqual from '../shallowequal'
 
 // constants
 const STATUS_ORIGINAL = 0 // The default status, locating at the original position.
@@ -34,6 +35,11 @@ export function useSticky(props) {
 
   const outerElement = useRef<HTMLDivElement | undefined>(undefined)
   const innerElement = useRef<HTMLDivElement | undefined>(undefined)
+  const propsRef = useRef(props)
+  const propsEnabledChange = props.enabled !== propsRef.current.enabled
+  const propsHasChanged = !shallowEqual(props, propsRef.current)
+  const needTriggerUpdate =   propsRef.current.top !== props.top || propsRef.current.bottomBoundary !== props.bottomBoundary  // if the top or bottomBoundary props were changed, then trigger the update
+  propsRef.current = props
 
   const [state, setState] = useState({
     top: 0, // A top offset from viewport top where Sticky sticks to when scrolling up
@@ -304,7 +310,6 @@ export function useSticky(props) {
     }
   }
 
-  
   useEffect(() => {
     // Only initialize the globals if this is the first
     // time this component type has been mounted
@@ -352,23 +357,56 @@ export function useSticky(props) {
     }
   }, [])
 
+  useEffect(() => {
+    if (
+      propsRef.current.onStateChange
+    ) {
+      propsRef.current.onStateChange({ status: state.status })
+    }
+  }, [state.status])
+
+  useEffect(() => {
+    updateInitialDimension()
+    update()
+  }, [state.top])
+
+
+  useEffect(() => {
+    if(propsHasChanged){
+      if(propsEnabledChange) {
+        if (propsRef.current.enabled) {
+          setState({ activated: true })
+          updateInitialDimension()
+          update()
+        } else {
+          setState({ activated: false })
+          reset()
+        }
+      } else if(needTriggerUpdate) {
+        updateInitialDimension()
+        update()
+      }
+    }
+      
+   
+  }, [propsEnabledChange, propsHasChanged, needTriggerUpdate])
 
   return {
     state,
     setState,
 
-    getTargetHeight,
-    getTopPosition,
-    getTargetBottom,
-    getBottomBoundary,
-    reset,
-    release,
-    fix,
-    updateInitialDimension,
-    update,
-    handleResize,
-    handleScrollStart,
-    handleScroll,
+    // getTargetHeight,
+    // getTopPosition,
+    // getTargetBottom,
+    // getBottomBoundary,
+    // reset,
+    // release,
+    // fix,
+    // updateInitialDimension,
+    // update,
+    // handleResize,
+    // handleScrollStart,
+    // handleScroll,
     translate,
 
     outerElement,
