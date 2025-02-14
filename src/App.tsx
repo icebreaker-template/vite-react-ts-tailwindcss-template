@@ -1,6 +1,11 @@
-import Sticky2 from './ai'
-import Sticky from './Sticky'
+// import Sticky2 from './ai'
+// import Sticky from './Sticky'
+
+
+import Sticky from './sticky'
 import './App.css'
+
+const Sticky2 = Sticky
 
 function App() {
   return (
